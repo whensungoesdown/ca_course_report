@@ -1,0 +1,51 @@
+%! TEX root = 'main.tex'
+\appendix
+
+\begin{appendices}
+
+\section{}
+
+\begin{lstlisting}[style=code]
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.numeric_std.all;
+
+entity PatternOnWire is
+	Port (CLK : in STD_LOGIC;
+			Input: in STD_LOGIC;
+			Output: out STD_LOGIC;
+			LED : out STD_LOGIC);
+end PatternOnWire;
+
+architecture Behavioral of PatternOnWire is
+	signal match : STD_LOGIC := '0';  --bool
+	signal r_shift : STD_ULOGIC_VECTOR(7 downto 0);
+begin	
+	TmpP : process(CLK, Input)
+		begin
+		if CLK'event and CLK='1' then	 --rising edge
+			r_shift(7) <= r_shift(6);
+			r_shift(6) <= r_shift(5);
+			r_shift(5) <= r_shift(4);
+			r_shift(4) <= r_shift(3);
+			r_shift(3) <= r_shift(2);
+			r_shift(2) <= r_shift(1);
+			r_shift(1) <= r_shift(0);
+			r_shift(0) <= Input;
+			
+			if r_shift = "01010101" then
+				match <= '1';
+			else
+				--match <= '0';
+			end if;
+			
+		end if;
+	end process;
+
+	Output <= match;
+	LED <= not(match);
+end Behavioral;
+
+\end{lstlisting}
+
+\end{appendices}
