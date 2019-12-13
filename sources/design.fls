@@ -1,0 +1,7 @@
+PWD /home/u/prjs/paper/ca_course_report/sources
+INPUT /etc/texmf/web2c/texmf.cnf
+INPUT /usr/share/texmf/web2c/texmf.cnf
+INPUT /usr/share/texlive/texmf-dist/web2c/texmf.cnf
+INPUT /var/lib/texmf/web2c/pdftex/pdflatex.fmt
+INPUT design.tex
+OUTPUT design.log
