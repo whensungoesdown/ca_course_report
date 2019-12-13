@@ -23,6 +23,7 @@ Suppose the initial state of the CPU is as follows.
 
 \begin{itemize}
 	\item PC = 0x0
+	\item Memory is initialized as in~\autoref{tab:memory}
 \end{itemize}
 
 \begin{table}[th]
@@ -58,7 +59,7 @@ By issuing these two control signals, the PC sends its 4-bit value to the bus, a
 	\label{fig:cc1}
 \end{figure}
 
-As a result, the value in the PC is sent to the MAR.
+As a result, the value in the PC is sent to the MAR and now MAR is 0x0.
 
 
 \subsection{Clock Cycle 2}
@@ -80,7 +81,7 @@ By issuing RO and II, the RAM sends the byte to the bus and the IR gets it, as s
 	\label{fig:cc2}
 \end{figure}
 
-As a result, the instruction is successfully loaded into the IR.
+As a result, the instruction is successfully loaded into the IR. Now IR contains value 0x1E.
 
 
 \subsection{Clock Cycle 3}
@@ -102,7 +103,7 @@ This clock cycle can be viewed as the decoding phase. When IO is signaled, as me
 	\label{fig:cc3}
 \end{figure}
 
-As a result, the operand which is a memory address, now is loaded into MAR. And the control logic also gets the opcode.
+As a result, the operand which is a memory address, now is loaded into MAR. MAR has 0xE and the control logic also gets the opcode.
 
 
 \subsection{Clock Cycle 4}
@@ -114,7 +115,7 @@ We issue two control signals.
 	\item AI (A IN)
 \end{itemize}
 
-Because in the last clock cycle, the MAR already loaded with the memory address. In this clock cycle, the RO causes the memory to send the corresponding data to the bus. Meanwhile, register Agets data from the bus, as shown in~\autoref{fig:cc4}.
+Because in the last clock cycle, the MAR already loaded with the memory address 0xE. In this clock cycle, the RO causes the memory to send the corresponding data to the bus. Meanwhile, register A gets data from the bus, as shown in~\autoref{fig:cc4}.
 
 \begin{figure}[th]
 	\includegraphics[width=0.47\textwidth]{figures/cc4}
@@ -123,4 +124,4 @@ Because in the last clock cycle, the MAR already loaded with the memory address.
 	\label{fig:cc4}
 \end{figure}
 
-So we see that when this clock cycle ends, the value in memory 0xE has been successfully loaded into register A.
+So we see that when this clock cycle ends, the value in memory 0xE has been successfully loaded into register A. Now register A has the value 0xA.

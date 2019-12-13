@@ -4,7 +4,7 @@
 In this section, we introduce the overall design and each major components in this toy CPU.
 
 \subsection{Design Specification}
-To make the design simple enough so that we can fully understand, 8-bit processor seems to be a good choice. Because a byte has 8 bits, a 4-bit processor can be cumbersome when reading/writing memory. It needs to read/write the memory twice to read/write one byte, and the 4-bit register cannot store the entire byte. After deciding the processor is 8-bit, next, we want to make a 8-bit, fixed length instruction set. It's much easier to decode and to fetch instructions compares to variable length instruction set such as x86 architecture.
+To make the design simple enough so that we can fully understand, 8-bit processor seems to be a good choice. Because a byte has 8 bits, a 4-bit processor can be cumbersome when reading/writing memory. It needs to read/write the memory twice for one byte, and the 4-bit register cannot store the entire byte. After deciding the processor is 8-bit, next, we want to make a 8-bit, fixed length instruction set. It's much easier to decode and to fetch instructions compares to variable length instruction set as in x86 architecture.
 
 The following is our design specification, based on the 8-bit setting.
 
@@ -65,10 +65,10 @@ For 4-bit register, we use 74173 TTL logic module that provided by the FPGA soft
 
 \subsection{MAR and Memory}
 
-In this simple CPU, we do not use dynamic memory (DRAM) but static memory (SRAM). First, we are not sure whether FPGAs can simulate capacitors and thus implement DRAM. Secondly, the CPU on modern computers runs much faster than memory, which requires a chipset to control it separately, or a CPU with a memory controller. We are not clear about these concepts yet, so we use SRAM to make memory and CPU work on the same frequency. This memory is quit similar to L1 instruction cache in modern computers, it only take one clock cycle to read/write. (Actually, because we use the memory module provided by Quartus, it takes 2 clock cycle to read/write. This is reflected in the control logic in our source code. But for simplicity, later in~\autoref{sec:casestudy}, we assume that the memory only takes one clock cycle to read/write data)
+In this simple CPU, we do not use dynamic memory (DRAM) but static memory (SRAM). First, we are not sure whether FPGA can simulate capacitors and thus implement DRAM. Secondly, the CPU on modern computers runs much faster than memory, which requires a chipset to control it separately, or a CPU with a memory controller. We are not clear about these concepts yet, so we use SRAM to make memory and CPU work on the same frequency. This memory is quit similar to L1 instruction cache in modern computers, it only take one clock cycle to read/write. (Actually, because we use the memory module provided by Quartus, it takes 2 clock cycle to read/write. This is reflected in the control logic in our source code. But for simplicity, later in~\autoref{sec:casestudy}, we assume that the memory only takes one clock cycle to read/write data)
 
 
-The memory address register either stores the memory address from which data will be fetched from the memory module, or the address to which data will be sent to store. Basically, MAR holds the memory location of data that needs to be accessed. Since the CPU only have 16 bytes memory space, the MAR only needs 4-bit width. As shown in~\autoref{fig:marmem}, the MAR's input (d) connects to bus and it's output (q) connects to the memory module. There is on signal for MAR. 
+The memory address register either stores the memory address from which data will be fetched from the memory module, or the address to which data will be sent to store. Basically, MAR holds the memory location of data that needs to be accessed. Since the CPU only have 16 bytes memory space, the MAR only needs 4-bit. As shown in~\autoref{fig:marmem}, the MAR's input (d) connects to bus and it's output (q) connects to the memory module. There is only one signal for MAR. 
 \begin{itemize}
 	\item MI (MAR IN)
 \end{itemize}
@@ -92,7 +92,7 @@ When RI is signaled, data will be sent to the memory. When RO is signaled, memor
 
 
 \subsection{IR}
-IR is the register that holds the instruction being executed or decoded. Decoding the opcode in the instruction register includes determining the instruction, determining where its operands in memory, retrieving the operands from memory, allocating processor resources to execute the command, etc. In this case, as mentioned earlier, the low 4-bit is the only memory operand, so it will be output to the bus. The high 4-bit output of the IR is available to control logic, which generate the timing control signal that controls various processing components involved in executing the instruction. ~\autoref{fig:ir} shows that its input (d) connects to the bus, and its output (q) is divided into two parts, the high 4-bit part is sent to the bus, the high 4-bit part which is the opcode is sent to the control logic.
+IR is the register that holds the instruction being executed or decoded. Decoding the opcode in the instruction register includes determining the instruction, determining where its operands in memory, retrieving the operands from memory, allocating processor resources to execute the command, etc. In this case, as mentioned earlier, the low 4-bit is the only memory operand, so it will be output to the bus. The high 4-bit output of the IR is available to control logic, which generate the timing control signal that controls various processing components involved in executing the instruction. ~\autoref{fig:ir} shows that its input (d) connects to the bus, and its output (q) is divided into two parts, the low 4-bit part is sent to the bus, the high 4-bit part which is the opcode is sent to the control logic.
 
 \begin{figure}[th]
 	\includegraphics[width=0.47\textwidth]{figures/ir}
@@ -135,7 +135,7 @@ Each general register has two control signals, corresponding to the read and wri
 
 \subsection{PC}
 
-The program counter (PC), commonly called the instruction pointer (IP) in Intel x86 microprocessors, and sometimes called the instruction address register (IAR) is a processor register that indicates whether a computer is in its program sequence.
+The program counter (PC), commonly called the instruction pointer (IP) in Intel x86 microprocessors, and sometimes called the instruction address register (IAR) is a processor register that indicates where a CPU is in its program sequence.
 
 Because our memory address space is only 16 bytes, the PC only needs 4 bits to cover the entire memory.
 
@@ -155,12 +155,12 @@ It also has two signals.
 	\item CO (COUNTER OUT)
 \end{itemize}
 
-When CO is signaled, the program counter out its content to the bus. Without CE signal, program counter will not increase by 1 every clock cycle.
+When CO is signaled, the program counter output its content to the bus. Without CE signal, program counter will not increase on each clock cycle.
 
 
 \subsection{Control Logic}
 
-Their are 18 control signals in our design. The combination of different signals can control the transmission of data between corresponding components. For example, issuing AO (A OUT) and BI (B IN) at the same clock cycle can make the data in register A transfer to register B. These signals can be regarded as atomic operations, and the function of control logic is to form a complete instruction through these operations.
+Their are 18 control signals in our design. The combination of signals can control the transmission of data between corresponding components. For example, issuing AO (A OUT) and BI (B IN) at the same clock cycle can make the data in register A transferred to register B. These signals can be regarded as atomic operations, and the function of control logic is to form a complete instruction through these operations.
 
 Each instruction requires many clock cycles to complete, and several control signals need to be issued in each clock cycle. To do this, we use ROM to encode the instruction logics. Some instructions are more complicated and required more steps, and some instructions are relatively simple. So we set that each instruction needs to be completed in 6 steps. We use an 74163 4-bit counter to count the steps, as shown in~\autoref{fig:controllogic}.
 
